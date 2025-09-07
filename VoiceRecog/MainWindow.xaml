@@ -12,12 +12,16 @@
         xmlns:local="clr-namespace:VoiceRecog"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
-        Title="VoiceRecognition for MSFS" Height="450" Width="750">
+        Title="VoiceRecognition for MSFS" Height="550" Width="750" Icon="/ChatGPT Image 6 sep 2025, 20_01_58.png">
     <Grid Background="#FF444040">
-        <Button Name="Button1" Content="Pause" HorizontalAlignment="Left" Margin="89,346,0,0" VerticalAlignment="Top" Click="Button1_Click" Width="53"/>
-        <Button Name="Button2" Content="Quit" HorizontalAlignment="Left" Margin="565,346,0,0" VerticalAlignment="Top" Click="Button2_Click" RenderTransformOrigin="1.322,16.893" Width="69"/>
-        <TextBox Name="TextBox1" VerticalScrollBarVisibility="Visible" HorizontalAlignment="Left" Margin="89,92,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="545" Height="227" Background="#FFE4DFDF"/>
-        <TextBlock HorizontalAlignment="Left" Margin="89,29,0,0" TextWrapping="Wrap" Text="VoiceRecognition for MSFS" VerticalAlignment="Top" FontSize="24" Foreground="White"/>
-
+        <Button Name="Button1" Content="Pause" HorizontalAlignment="Left" Margin="95,444,0,0" VerticalAlignment="Top" Click="Button1_Click" Width="53"/>
+        <Button Name="Button2" Content="Quit" HorizontalAlignment="Left" Margin="571,444,0,0" VerticalAlignment="Top" Click="Button2_Click" RenderTransformOrigin="1.322,16.893" Width="69"/>
+        <TextBox Name="TextBox1" VerticalScrollBarVisibility="Visible" HorizontalAlignment="Left" Margin="95,129,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="545" Height="227" Background="#FFE4DFDF"/>
+        <TextBlock HorizontalAlignment="Left" Margin="222,25,0,0" TextWrapping="Wrap" Text="VoiceRecognition for MSFS" VerticalAlignment="Top" FontSize="24" Foreground="White"/>
+        <TextBlock HorizontalAlignment="Left" Margin="96,388,0,0" TextWrapping="Wrap" Text="Simconnect status:" VerticalAlignment="Top" Foreground="#FFD8D2D2"/>
+        <Ellipse Name="SimconnectStatus" HorizontalAlignment="Left" Height="12" Margin="231,390,0,0"  Fill="Red" VerticalAlignment="Top" Width="12"/>
+        <TextBlock HorizontalAlignment="Left" Margin="487,388,0,0" TextWrapping="Wrap" Text="Recognition active:" VerticalAlignment="Top" Foreground="#FFD8D2D2"/>
+        <Ellipse Name="RecogStatus" HorizontalAlignment="Left" Height="12" Margin="626,390,0,0"  Fill="Red" VerticalAlignment="Top" Width="14"/>
+        <TextBlock HorizontalAlignment="Left" Margin="281,69,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="20" Foreground="White" Text="Your virtual co-pilot!" FontStyle="Italic"/>
     </Grid>
 </Window>

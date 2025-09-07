@@ -82,7 +82,25 @@ namespace VoiceRecog
         /// <summary>
         ///Empty enums for typecasting
         /// </summary>
-        enum EVENTS { };
+        enum EVENTS 
+        {
+            KEY_C_DN = 0,
+            KEY_C_UP = 1,
+
+        };
+
+        enum GROUPID
+        {
+            GROUP0 = 0,
+        }
+
+        enum INPUTID
+        {
+            INPUT0 = 0,
+        }
+
+
+
         enum SIMVARDEF { };
         enum SIMVARREQ { };
 
@@ -164,6 +182,8 @@ namespace VoiceRecog
                 simvarlist = new List<SimVarList>();
                 simeventlist = new List<SimVarList>();
 
+
+
                 LogResult?.Invoke(this, "Connected");
             }
             catch (COMException ex)
@@ -200,6 +220,18 @@ namespace VoiceRecog
             bSimConnected = true;
             LogResult?.Invoke(this, $"VoiceRecognition succesfully connected to MSFS using SimConnect");
 
+
+
+           // simconnect.MapInputEventToClientEvent(
+           //        INPUTID.INPUT0,
+           //        "a",               // Virtuele keycode
+           //        EVENTS.KEY_C_DN,    // Down event
+           //        0,
+           //        EVENTS.KEY_C_UP,      // Up event
+           //        1,
+           //        false
+           //    );
+
             //LogResult?.Invoke(this, $"- Application name: {data.szApplicationName}");
             //LogResult?.Invoke(this, $"- Application Version {data.dwApplicationVersionMajor}.{data.dwApplicationVersionMinor} - build {data.dwApplicationBuildMajor}.{data.dwApplicationBuildMinor}");
             //LogResult?.Invoke(this, $"- SimConnect  Version {data.dwSimConnectVersionMajor}.{data.dwSimConnectVersionMinor} - build {data.dwSimConnectBuildMajor}.{data.dwSimConnectBuildMinor}");
@@ -216,6 +248,16 @@ namespace VoiceRecog
             bSimConnected = false;
         }
 
+
+
+        private static void Simconnect_OnRecvEvent(SimConnect sender, SIMCONNECT_RECV_EVENT data)
+        {
+            if ((EVENTS)data.uEventID == EVENTS.KEY_C_UP)
+            {
+                Debug.WriteLine("C is ingedrukt in de simulator! 🎉");
+                // Hier kun je je eigen actie uitvoeren, bv. gear up, logging, externe hardware aansturen etc.
+            }
+        }
 
         /// <summary>
         ///  Deal with exceptions received from Simconnect

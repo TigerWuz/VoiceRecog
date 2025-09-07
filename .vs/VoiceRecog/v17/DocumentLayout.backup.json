@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|solutionrelative:voicerecog\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|d:\\github\\voicerecog\\voicerecog\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|solutionrelative:voicerecog\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|d:\\github\\voicerecog\\voicerecog\\simconnectimplementer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|solutionrelative:voicerecog\\simconnectimplementer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|d:\\github\\voicerecog\\voicerecog\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{E79D024B-39EE-4A54-988D-FF411F69B210}|VoiceRecog\\VoiceRecog.csproj|solutionrelative:voicerecog\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     }
   ],
   "DocumentGroupContainers": [
@@ -27,13 +27,15 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "MainWindow.xaml",
-              "DocumentMoniker": "D:\\Github\\VoiceRecog\\VoiceRecog\\MainWindow.xaml",
-              "RelativeDocumentMoniker": "VoiceRecog\\MainWindow.xaml",
-              "ToolTip": "D:\\Github\\VoiceRecog\\VoiceRecog\\MainWindow.xaml",
-              "RelativeToolTip": "VoiceRecog\\MainWindow.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-09-04T11:09:04.901Z"
+              "Title": "SimConnectImplementer.cs",
+              "DocumentMoniker": "D:\\Github\\VoiceRecog\\VoiceRecog\\SimConnectImplementer.cs",
+              "RelativeDocumentMoniker": "VoiceRecog\\SimConnectImplementer.cs",
+              "ToolTip": "D:\\Github\\VoiceRecog\\VoiceRecog\\SimConnectImplementer.cs",
+              "RelativeToolTip": "VoiceRecog\\SimConnectImplementer.cs",
+              "ViewState": "AgIAAAoBAAAAAAAAAAA9wOkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-03T19:44:02.961Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -43,7 +45,7 @@
               "RelativeDocumentMoniker": "VoiceRecog\\MainWindow.xaml.cs",
               "ToolTip": "D:\\Github\\VoiceRecog\\VoiceRecog\\MainWindow.xaml.cs",
               "RelativeToolTip": "VoiceRecog\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAJoAAAAAAAAAAAAwwMIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAHsAAAAAAAAAAAAowJ0AAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-09-03T17:38:43.14Z",
               "EditorCaption": ""
@@ -51,14 +53,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "SimConnectImplementer.cs",
-              "DocumentMoniker": "D:\\Github\\VoiceRecog\\VoiceRecog\\SimConnectImplementer.cs",
-              "RelativeDocumentMoniker": "VoiceRecog\\SimConnectImplementer.cs",
-              "ToolTip": "D:\\Github\\VoiceRecog\\VoiceRecog\\SimConnectImplementer.cs",
-              "RelativeToolTip": "VoiceRecog\\SimConnectImplementer.cs",
-              "ViewState": "AgIAALAAAAAAAAAAAADwv8gAAAA2AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-09-03T19:44:02.961Z"
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "D:\\Github\\VoiceRecog\\VoiceRecog\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "VoiceRecog\\MainWindow.xaml",
+              "ToolTip": "D:\\Github\\VoiceRecog\\VoiceRecog\\MainWindow.xaml",
+              "RelativeToolTip": "VoiceRecog\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-09-04T11:09:04.901Z",
+              "EditorCaption": ""
             }
           ]
         }

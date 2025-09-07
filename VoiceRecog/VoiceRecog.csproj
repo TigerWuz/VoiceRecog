@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="ChatGPT Image 6 sep 2025, 20_01_58.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <COMReference Include="SpeechLib">
       <WrapperTool>tlbimp</WrapperTool>
       <VersionMinor>4</VersionMinor>
@@ -33,6 +37,10 @@
     <Reference Include="Microsoft.Speech">
       <HintPath>C:\Program Files\Microsoft SDKs\Speech\v11.0\Assembly\Microsoft.Speech.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="ChatGPT Image 6 sep 2025, 20_01_58.png" />
   </ItemGroup>
 
   <ItemGroup>
