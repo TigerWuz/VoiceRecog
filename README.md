@@ -1,21 +1,110 @@
-This repository is a Voice Recognition program to control your aircraft in MSFS (either 2020 or 2024). <br>
+# VoiceRecog
 
-The voice commands are defined using a text file voice_commands.yml. A couple of examples are given in there:
+VoiceRecog is a Windows application that allows you to control **Microsoft Flight Simulator 2020** and **Microsoft Flight Simulator 2024** using voice commands.
 
-You can now turn the voice recognition off with voice command "Co pilot off" and on with "Co pilot on". This ensures that no unwanted voice recognition takes place when this is not required.  
+The application uses the built-in Windows Speech Recognition engine and sends **SimConnect** or **Mobiflight** events directly to the simulator.
 
-<code>
-VOICE COMMANDS
-gear up: Mobiflight.GEAR_UP
-gear down: Mobiflight.GEAR_DOWN
-flaps up: Mobiflight.FLAPS_DECR
-flaps down: Mobiflight.FLAPS_INCR
-autopilot on: AUTOPILOT_ON
-autopilot off: AUTOPILOT_OFF
-</code>
-<br>
-The first part of the line contains the actual voice command, after the : follows the event to be send to the simulator. This can be Mobiflight events or standard simconnect events. FSUIPC events will follow in a later version.
-<br/><br/>
+---
+
+## Features
+
+- 🎤 Voice control for MSFS 2020 & 2024
+- ⚙️ Simple YAML-based command configuration
+- ✈️ Supports standard SimConnect events
+- 🔧 Supports Mobiflight events
+- 🎙️ Enable or disable voice recognition using voice commands
+
+---
+
+## Requirements
+
+- Microsoft Flight Simulator 2020 or 2024
+- .NET 8 Desktop Runtime: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.19-windows-x64-installer
+- SimConnect
+
+---
+
+## Configuration
+
+All voice commands are configured in the `voice_commands.yml` file.
+
+Each command contains a spoken phrase and either an `action` or an `event`.
+
+### Internal actions
+
+These commands control the speech recognition itself.
+
+```yaml
+commands:
+  - phrase: "copilot aus"
+    action: "DisableRecognition"
+
+  - phrase: "copilot an"
+    action: "EnableRecognition"
+```
+
+---
+
+### Simulator events
+
+Any SimConnect or Mobiflight event can be triggered.
+
+```yaml
+commands:
+  - phrase: "autopilot on"
+    event: "AUTOPILOT_ON"
+
+  - phrase: "autopilot off"
+    event: "AUTOPILOT_OFF"
+
+  - phrase: "magneto on"
+    event: "MAGNETO_START"
+
+  - phrase: "magneto off"
+    event: "MAGNETO_OFF"
+```
+
+---
 
 
-The program required .Net 8 desktop runtime, which can be downloaded here: https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-8.0.19-windows-x64-installer
+## Complete Example
+
+```yaml
+commands:
+  - phrase: "copilot off"
+    action: "DisableRecognition"
+
+  - phrase: "copilot on"
+    action: "EnableRecognition"
+
+  - phrase: "autopilot on"
+    event: "AUTOPILOT_ON"
+
+  - phrase: "autopilot off"
+    event: "AUTOPILOT_OFF"
+
+  - phrase: "magneto on"
+    event: "MAGNETO_START"
+
+  - phrase: "magneto off"
+    event: "MAGNETO_OFF"
+
+```
+
+---
+
+## Recent Improvements
+
+- Added YAML-based command configuration
+- Added internal actions (`EnableRecognition` / `DisableRecognition`)
+- Improved reconnect stability
+- Fixed pause/resume exception while speech recognition was active
+- Improved window layout scaling
+
+---
+
+## Planned Features
+
+- Better reconnect handling
+- Improved logging
+- Parameterized voice commands
