@@ -16,7 +16,6 @@ namespace VoiceRecog
     public partial class MainWindow : Window
     {
         private SpeechRecognitionEngine recognizer;
-        private bool isRecognitionRunning = true; // Track whether recognition is currently running
         private SimConnectImplementer _simConnect;
 
         private readonly List<VoiceCommand> _voiceCommands = new();
@@ -24,18 +23,22 @@ namespace VoiceRecog
 
         private bool _subscribedToSimData = false;
 
+
         public MainWindow()
         {
             InitializeComponent();
 
-            
+            LoadVoiceCommands();
+            InitializeSpeechRecognition();
+        }
 
-            //reading voice commands
-            string configfile = "voice_commands.yml";
-            ReadMapFile(configfile);
+        private void LoadVoiceCommands()
+        {
+            ReadMapFile("voice_commands.yml");
+        }
 
-
-
+        private void InitializeSpeechRecognition()
+        {
             // Create a Choices object containing a list of choices.
             var recognizers = SpeechRecognitionEngine.InstalledRecognizers();
 
@@ -69,12 +72,9 @@ namespace VoiceRecog
             recognizer.LoadGrammar(grammar);
             recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(VoiceRecognizer);
             recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            isRecognitionRunning = !isRecognitionRunning;
             _copilotActive = true;
             RecogStatus.Fill = Brushes.Green;
-
         }
-
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
