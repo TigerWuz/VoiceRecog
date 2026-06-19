@@ -24,6 +24,13 @@ The application uses the built-in Windows Speech Recognition engine and sends **
 
 ---
 
+## Windows SmartScreen
+
+VoiceRecog is currently not digitally code-signed. Because of that, Windows may display a SmartScreen warning when you launch the application for the first time. 
+If you downloaded the release from this GitHub repository, you can click More info → Run anyway.
+
+---
+
 ## Configuration
 
 All voice commands are configured in the `voice_commands.yml` file.

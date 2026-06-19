@@ -6,15 +6,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-	<Version>0.1.0</Version>
-	<AssemblyVersion>0.1.0.0</AssemblyVersion>
-	<FileVersion>0.1.0.0</FileVersion>
-	<InformationalVersion>0.1.0</InformationalVersion>
+	
+	<ApplicationIcon>MainIcon.ico</ApplicationIcon>
+
+	<AssemblyName>VoiceRecog</AssemblyName>
+	<RootNamespace>VoiceRecog</RootNamespace>
+
+	<Product>VoiceRecog</Product>
+	<Company>TigerWuz</Company>
+	<Authors>TigerWuz</Authors>
+
 	<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ChatGPT Image 6 sep 2025, 20_01_58.png" />
     <None Remove="voice_commands.yml" />
   </ItemGroup>
 
@@ -37,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="ChatGPT Image 6 sep 2025, 20_01_58.png" />
+    <Resource Include="MainIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>
