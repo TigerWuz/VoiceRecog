@@ -1,19 +1,12 @@
 ﻿using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Speech.Recognition;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using YamlDotNet.RepresentationModel;
+
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace VoiceRecog
 {
@@ -25,16 +18,11 @@ namespace VoiceRecog
         private SpeechRecognitionEngine recognizer;
         private bool isRecognitionRunning = true; // Track whether recognition is currently running
         public SimConnectImplementer mysimconnect;
-        public int jmax = 0;
 
-        //string[] voice_commands = { "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null" };
-        string[] voice_commands = { "null", "null" };
-        string[] events = { "null", "null"};
-        string[] controls = { "copilot on", "copilot off" };
+        public List<VoiceCommand> voiceCommands { get; set; } = new();
         public bool copilotactive;
 
         public bool subscribedToSimData = false;
-        public bool voiceRecogActive = true;
 
         public MainWindow()
         {
@@ -44,27 +32,36 @@ namespace VoiceRecog
 
             //reading voice commands
             string configfile = "voice_commands.yml";
-            readMapFile(configfile);
+            ReadMapFile(configfile);
 
 
 
             // Create a Choices object containing a list of choices.
-            CultureInfo culture = new CultureInfo("en-US");
+            var recognizers = SpeechRecognitionEngine.InstalledRecognizers();
+
+            if (!recognizers.Any())
+            {
+                MessageBox.Show("No Speech recognizer installed.");
+                return;
+            }
+
+            RecognizerInfo recognizerInfo = recognizers.First();
+
+            Debug.WriteLine($"Using Recognizer: {recognizerInfo.Name}");
+            Debug.WriteLine($"Language: {recognizerInfo.Culture}");
 
             Choices commands = new Choices();
-            commands.Add(voice_commands);
-            commands.Add(controls);
+            commands.Add(voiceCommands.Select(c => c.Phrase).ToArray());
+            //commands.Add(controls);
 
-
-            // Create a GrammarBuilder object and append the Choices object.
             GrammarBuilder gb = new GrammarBuilder();
             gb.Append(commands);
-            gb.Culture = culture;
+            gb.Culture = recognizerInfo.Culture;
 
-            // Create the Grammar instance and load it into the recognizer.
             Grammar grammar = new Grammar(gb);
 
-            recognizer = new SpeechRecognitionEngine(new System.Globalization.CultureInfo("en-US"));
+            recognizer = new SpeechRecognitionEngine(recognizerInfo);
+
             recognizer.SetInputToDefaultAudioDevice();
 
             //Grammar grammar = new DictationGrammar(); //this is the default grammar
@@ -95,31 +92,27 @@ namespace VoiceRecog
 
             //Debug.WriteLine($"Simconnect started");
             bool localbSimConnected = false;
-            bool title_registred = false;
+
             while (true)
             {
                 //Debug.Write($"Start loop");
                 Thread.Sleep(1000);
                 localbSimConnected = mysimconnect.bSimConnected;
-                if (localbSimConnected == false)
+                if (!localbSimConnected)
                 {
                     subscribedToSimData = false;
                     //Debug.WriteLine($"Start inner if ");
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                     this.Dispatcher.Invoke(() =>
                     {
                         //Debug.WriteLine($"Just before simconnect call");
                         mysimconnect.Connect();
-                        Thread.Sleep(200);
+                        Thread.Sleep(1000);
                         localbSimConnected = mysimconnect.bSimConnected;
                         Debug.WriteLine($"Simconnect status loop: {localbSimConnected}");
                         if (localbSimConnected)
                         {
                             SimconnectStatus.Fill = Brushes.Green;
-                            //int i = mysimconnect.RegisterSimVar("TITLE", "unit", "string", "NOT_USED");
-                            //title_registred = true;
-                            //Debug.WriteLine($"Title registred {i}");
-
                         }
                         else
                         {
@@ -137,7 +130,6 @@ namespace VoiceRecog
                     });
                     if (!subscribedToSimData)
                     {
-                        subscribeToSimConnectData();
                         subscribedToSimData = true;
                         Debug.WriteLine($"SimConnect Data registred.");
 
@@ -164,65 +156,53 @@ namespace VoiceRecog
 
         }
 
-
-        private void Button1_Click(object sender, RoutedEventArgs e)
+        private void Settings(object sender, RoutedEventArgs e)
         {
-            if (isRecognitionRunning)
-            {
-                recognizer.RecognizeAsyncCancel();
-                Button1.Content = "Continue";
-            }
-            else
-            {
-                recognizer.RecognizeAsync(RecognizeMode.Multiple);
-                Button1.Content = "Pause";
-            }
-
-            isRecognitionRunning = !isRecognitionRunning; // Toggle the recognition state
-
+            //curerntly empty
         }
 
         private void VoiceRecognizer(object sender, SpeechRecognizedEventArgs e)
         {
-            string text_found = e.Result.Text;
+            string recognizedText = e.Result.Text;
             Debug.WriteLine(e);
-            if (text_found != "null");
-            {
-                
-                for (int i = 0; i < jmax; i++)
+            
+            var command = voiceCommands.FirstOrDefault(c => c.Phrase == recognizedText);
+
+            if (command == null)
+                return;
+
+            //internal reaction for the tool not propagated to simulation
+            if (!string.IsNullOrEmpty(command.Action))
+            { 
+                switch (command.Action)
                 {
-                    //Debug.WriteLine(voice_commands[i]);
-                    if ((text_found == voice_commands[i]) && copilotactive)
-                    {
-                        TextBox1.Text += e.Result.Text + "\r\n";
-                        mysimconnect.SendEvent(events[i], 1);
-                        Debug.WriteLine(events[i], "sent to sim!");
-                        TextBox1.AppendText(events[i] + " sent to sim!" + "\r\n");
-                        TextBox1.ScrollToEnd();
-                        break;
-                    }
-                    if (text_found == "copilot on")
-                    {
+                    case "EnableRecognition":
                         copilotactive = true;
+                        RecogStatus.Fill = Brushes.Green;
                         TextBox1.AppendText("Your co-pilot is active!\r\n");
                         TextBox1.ScrollToEnd();
-                        RecogStatus.Fill = Brushes.Green;
-                        break;
-                    }
-                    if (text_found == "copilot off")
-                    {
+                        return;
+                    case "DisableRecognition":
                         copilotactive = false;
+                        RecogStatus.Fill = Brushes.Red;
                         TextBox1.AppendText("Your co-pilot has a break!\r\n");
                         TextBox1.ScrollToEnd();
-                        RecogStatus.Fill = Brushes.Red;
-                        break;
-                    }
-
+                        return;
                 }
             }
-        }
 
-        private void Button2_Click(object sender, RoutedEventArgs e)
+            if (copilotactive && !string.IsNullOrEmpty(command.Event))
+            {
+                TextBox1.AppendText(command.Phrase + "\r\n");
+                mysimconnect.SendEvent(command.Event, 1);
+
+                TextBox1.AppendText(command.Event + " sent to sim!\r\n");
+                TextBox1.ScrollToEnd();
+            }
+        }
+       
+
+        private void Quit_Click(object sender, RoutedEventArgs e)
         {
 
             mysimconnect.Disconnect();
@@ -231,69 +211,28 @@ namespace VoiceRecog
         }
 
 
-
-        public void subscribeToSimConnectData()
+        public void ReadMapFile(string filepath)
         {
-            //mysimconnect.RegisterSimVar("Title", "unit", "string", "NOT_USED");
-            //mysimconnect.RegisterSimVar("TURB ENG AFTERBURNER:4", "Bool", "float", "NOT_USED");
-        }
-
-        public void readMapFile(string filepath)
-        {
-            String line;
-            int j = 0;
             try
             {
-                //Pass the file path and file name to the StreamReader constructor
-                var input = new StreamReader(filepath);
-                //Read the first line of text
-                line = input.ReadLine();
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .IgnoreUnmatchedProperties()
+                    .Build();
 
-                //Continue to read until you reach end of file
-                while (line != null)
-                {
-                    Debug.WriteLine(line);
-                    if (line.Contains("#"))
-                    {
-                        Debug.WriteLine("Line skipped");
-                    }
-                    else
-                    {
-                        Debug.WriteLine("Line NOT skipped");
-                        if (j > 1) 
-                        {
-                            Debug.WriteLine(j);
-                            Array.Resize(ref voice_commands, j+1); 
-                            Array.Resize(ref events, j+1);
-                        }
-                        voice_commands[j] = line.Split(": ")[0];
-                        events[j] = line.Split(": ")[1];
-                        j++;
-                        jmax++;
-                    }
-                    //Read the next line
-                    line = input.ReadLine();
-                }
-                //close the file
-                Debug.WriteLine(voice_commands[5]); Debug.WriteLine(events[5]);
-                input.Close();
-                TextBox1.Text = "Input file correctly read \r\n";
+                using var reader = new StreamReader(filepath);
+
+                var config = deserializer.Deserialize<VoiceCommandConfig>(reader);
+                voiceCommands = config.Commands;
+
+                TextBox1.AppendText($"Loaded {voiceCommands.Count} voice commands.\r\n");
             }
             catch (Exception e)
             {
                 Debug.WriteLine("Exception: " + e.Message);
+                MessageBox.Show($"Could not load voice commands from {filepath}\n\n{e.Message}");
             }
-            finally
-            {
-                Debug.WriteLine("Executing finally block.");
-            }
-
-
-        
-
-
+            
         }
-
-
     }
 }
