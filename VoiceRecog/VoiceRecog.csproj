@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <None Remove="ChatGPT Image 6 sep 2025, 20_01_58.png" />
+    <None Remove="voice_commands.yml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,6 +23,12 @@
       <Isolated>false</Isolated>
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="voice_commands.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
