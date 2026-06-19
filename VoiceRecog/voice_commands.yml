@@ -1,0 +1,18 @@
+commands:
+  - phrase: "copilot off"
+    action: "DisableRecognition"
+
+  - phrase: "copilot on"
+    action: "EnableRecognition"
+
+  - phrase: "autopilot on"
+    event: "AUTOPILOT_ON"
+
+  - phrase: "autopilot off"
+    event: "AUTOPILOT_OFF"
+
+  - phrase: "magneto on"
+    event: "MAGNETO_START"
+
+  - phrase: "magneto off"
+    event: "MAGNETO_OFF"
