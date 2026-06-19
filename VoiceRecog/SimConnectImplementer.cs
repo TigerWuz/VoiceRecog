@@ -151,6 +151,9 @@ namespace VoiceRecog
         /// </summary>
         public async void Connect()
         {
+            if (simconnect != null)
+                return;
+
             Window simconnectWindow = new Window();
             var helper = new WindowInteropHelper(simconnectWindow);
             helper.EnsureHandle();
@@ -166,7 +169,7 @@ namespace VoiceRecog
 
             try
             {
-                await Task.Run(() => simconnect = new SimConnect("SimConnectorVoiceRecog", wih, WM_USER_SIMCONNECT, null, 0));
+                simconnect = await Task.Run(() => new SimConnect("SimConnectorVoiceRecog", wih, WM_USER_SIMCONNECT, null, 0));
 
                 // Listen for connect and quit msgs
                 simconnect.OnRecvOpen += SimConnect_OnRecvOpen;
@@ -188,7 +191,10 @@ namespace VoiceRecog
             }
             catch (COMException ex)
             {
-                LogResult?.Invoke(this, $"Connect Error: {ex.Message}");
+                simconnect = null;
+                bSimConnected = false;
+                LogResult?.Invoke(this, $"Connection error is your simulator running?");
+                return;
             }
         }
 
