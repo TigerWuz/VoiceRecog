@@ -146,14 +146,10 @@ namespace VoiceRecog
             {
                 if (!sResult.Contains("|"))
                 {
-                    TextBox1.AppendText(sResult + "\r\n");
-                    TextBox1.ScrollToEnd();
+                    Log(sResult);
                 }
-                //Debug.WriteLine(sResult);
 
             });
-
-
         }
 
         private void Settings(object sender, RoutedEventArgs e)
@@ -179,25 +175,20 @@ namespace VoiceRecog
                     case "EnableRecognition":
                         _copilotActive = true;
                         RecogStatus.Fill = Brushes.Green;
-                        TextBox1.AppendText("Your co-pilot is active!\r\n");
-                        TextBox1.ScrollToEnd();
+                        Log("Your co-pilot is active!");
                         return;
                     case "DisableRecognition":
                         _copilotActive = false;
                         RecogStatus.Fill = Brushes.Red;
-                        TextBox1.AppendText("Your co-pilot has a break!\r\n");
-                        TextBox1.ScrollToEnd();
+                        Log("Your co-pilot has a break!");
                         return;
                 }
             }
 
             if (_copilotActive && !string.IsNullOrEmpty(command.Event))
             {
-                TextBox1.AppendText(command.Phrase + "\r\n");
                 _simConnect.SendEvent(command.Event, 1);
-
-                TextBox1.AppendText(command.Event + " sent to sim!\r\n");
-                TextBox1.ScrollToEnd();
+                Log(command.Phrase + " sent: " + command.Event);
             }
         }
        
@@ -230,7 +221,7 @@ namespace VoiceRecog
                     _voiceCommands.AddRange(config.Commands);
                 }
 
-                TextBox1.AppendText($"Loaded {_voiceCommands.Count} voice commands.\r\n");
+                Log($"Loaded {_voiceCommands.Count} voice commands.");
             }
             catch (Exception e)
             {
@@ -238,6 +229,13 @@ namespace VoiceRecog
                 MessageBox.Show($"Could not load voice commands from {filepath}\n\n{e.Message}");
             }
             
+        }
+
+        private void Log(string message)
+        {
+            TextBox1.AppendText(message + Environment.NewLine);
+            TextBox1.ScrollToEnd();
+            Debug.WriteLine(message);
         }
     }
 }
