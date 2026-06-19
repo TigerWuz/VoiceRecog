@@ -1,10 +1,10 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using System.Speech.Recognition;
 using System.Windows;
 using System.Windows.Controls;
+using System.Speech.Recognition;
 using System.Windows.Media;
-
+using VoiceRecog.Services;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -15,7 +15,7 @@ namespace VoiceRecog
     /// </summary>
     public partial class MainWindow : Window
     {
-        private SpeechRecognitionEngine recognizer;
+        private SpeechRecognitionService _speechRecognition;
         private SimConnectImplementer _simConnect;
 
         private readonly List<VoiceCommand> _voiceCommands = new();
@@ -39,41 +39,21 @@ namespace VoiceRecog
 
         private void InitializeSpeechRecognition()
         {
-            // Create a Choices object containing a list of choices.
-            var recognizers = SpeechRecognitionEngine.InstalledRecognizers();
-
-            if (!recognizers.Any())
+            try
             {
-                MessageBox.Show("No Speech recognizer installed.");
-                return;
+                _speechRecognition = new SpeechRecognitionService(_voiceCommands);
+
+                _speechRecognition.CommandRecognized += VoiceRecognizer;
+
+                _speechRecognition.Start();
+
+                _copilotActive = true;
+                RecogStatus.Fill = Brushes.Green;
             }
-
-            RecognizerInfo recognizerInfo = recognizers.First();
-
-            Debug.WriteLine($"Using Recognizer: {recognizerInfo.Name}");
-            Debug.WriteLine($"Language: {recognizerInfo.Culture}");
-
-            Choices commands = new Choices();
-            commands.Add(_voiceCommands.Select(c => c.Phrase).ToArray());
-            //commands.Add(controls);
-
-            GrammarBuilder gb = new GrammarBuilder();
-            gb.Append(commands);
-            gb.Culture = recognizerInfo.Culture;
-
-            Grammar grammar = new Grammar(gb);
-
-            recognizer = new SpeechRecognitionEngine(recognizerInfo);
-
-            recognizer.SetInputToDefaultAudioDevice();
-
-            //Grammar grammar = new DictationGrammar(); //this is the default grammar
-
-            recognizer.LoadGrammar(grammar);
-            recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(VoiceRecognizer);
-            recognizer.RecognizeAsync(RecognizeMode.Multiple);
-            _copilotActive = true;
-            RecogStatus.Fill = Brushes.Green;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
