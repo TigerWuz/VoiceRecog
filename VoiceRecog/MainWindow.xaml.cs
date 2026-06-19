@@ -34,7 +34,19 @@ namespace VoiceRecog
 
         private void LoadVoiceCommands()
         {
-            ReadMapFile("voice_commands.yml");
+            try
+            {
+                _voiceCommands.Clear();
+                _voiceCommands.AddRange(
+                    VoiceCommandLoader.Load("voice_commands.yml"));
+
+                Log($"Loaded {_voiceCommands.Count} voice commands.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Could not load voice commands.\n\n{ex.Message}");
+            }
         }
 
         private void InitializeSpeechRecognition()
@@ -179,36 +191,6 @@ namespace VoiceRecog
             _simConnect.Disconnect();
             Environment.Exit(0);
             System.Windows.Application.Current.Shutdown();
-        }
-
-
-        public void ReadMapFile(string filepath)
-        {
-            try
-            {
-                var deserializer = new DeserializerBuilder()
-                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                    .IgnoreUnmatchedProperties()
-                    .Build();
-
-                using var reader = new StreamReader(filepath);
-
-                var config = deserializer.Deserialize<VoiceCommandConfig>(reader);
-                _voiceCommands.Clear();
-
-                if (config?.Commands != null)
-                {
-                    _voiceCommands.AddRange(config.Commands);
-                }
-
-                Log($"Loaded {_voiceCommands.Count} voice commands.");
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Exception: " + e.Message);
-                MessageBox.Show($"Could not load voice commands from {filepath}\n\n{e.Message}");
-            }
-            
         }
 
         private void Log(string message)
