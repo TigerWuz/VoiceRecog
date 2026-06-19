@@ -1,7 +1,0 @@
-# VOICE COMMANDS
-gear up: Mobiflight.GEAR_UP
-gear down: Mobiflight.GEAR_DOWN
-flaps up: Mobiflight.FLAPS_DECR
-flaps down: Mobiflight.FLAPS_INCR
-autopilot on: AUTOPILOT_ON
-autopilot off: AUTOPILOT_OFF
