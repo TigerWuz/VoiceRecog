@@ -17,12 +17,12 @@ namespace VoiceRecog
     {
         private SpeechRecognitionEngine recognizer;
         private bool isRecognitionRunning = true; // Track whether recognition is currently running
-        public SimConnectImplementer mysimconnect;
+        private SimConnectImplementer _simconnect;
 
-        public List<VoiceCommand> voiceCommands { get; set; } = new();
-        public bool copilotactive;
+        private readonly List<VoiceCommand> _voiceCommands = new();
+        private bool _copilotactive = true;
 
-        public bool subscribedToSimData = false;
+        private bool _subscribedToSimData = false;
 
         public MainWindow()
         {
@@ -87,8 +87,8 @@ namespace VoiceRecog
 
         public void ConnectSimConnect()
         {
-            mysimconnect = new SimConnectImplementer();
-            mysimconnect.LogResult += OnAddResult;
+            _simconnect = new SimConnectImplementer();
+            _simconnect.LogResult += OnAddResult;
 
             //Debug.WriteLine($"Simconnect started");
             bool localbSimConnected = false;
@@ -97,7 +97,7 @@ namespace VoiceRecog
             {
                 //Debug.Write($"Start loop");
                 Thread.Sleep(1000);
-                localbSimConnected = mysimconnect.bSimConnected;
+                localbSimConnected = _simconnect.bSimConnected;
                 if (!localbSimConnected)
                 {
                     subscribedToSimData = false;
@@ -106,9 +106,9 @@ namespace VoiceRecog
                     this.Dispatcher.Invoke(() =>
                     {
                         //Debug.WriteLine($"Just before simconnect call");
-                        mysimconnect.Connect();
+                        _simconnect.Connect();
                         Thread.Sleep(1000);
-                        localbSimConnected = mysimconnect.bSimConnected;
+                        localbSimConnected = _simconnect.bSimConnected;
                         Debug.WriteLine($"Simconnect status loop: {localbSimConnected}");
                         if (localbSimConnected)
                         {
@@ -128,9 +128,9 @@ namespace VoiceRecog
                     {
                         SimconnectStatus.Fill = Brushes.Green;
                     });
-                    if (!subscribedToSimData)
+                    if (!_subscribedToSimData)
                     {
-                        subscribedToSimData = true;
+                        _subscribedToSimData = true;
                         Debug.WriteLine($"SimConnect Data registred.");
 
                     }
@@ -166,7 +166,7 @@ namespace VoiceRecog
             string recognizedText = e.Result.Text;
             Debug.WriteLine(e);
             
-            var command = voiceCommands.FirstOrDefault(c => c.Phrase == recognizedText);
+            var command = _voiceCommands.FirstOrDefault(c => c.Phrase == recognizedText);
 
             if (command == null)
                 return;
@@ -177,13 +177,13 @@ namespace VoiceRecog
                 switch (command.Action)
                 {
                     case "EnableRecognition":
-                        copilotactive = true;
+                        _copilotactive = true;
                         RecogStatus.Fill = Brushes.Green;
                         TextBox1.AppendText("Your co-pilot is active!\r\n");
                         TextBox1.ScrollToEnd();
                         return;
                     case "DisableRecognition":
-                        copilotactive = false;
+                        _copilotactive = false;
                         RecogStatus.Fill = Brushes.Red;
                         TextBox1.AppendText("Your co-pilot has a break!\r\n");
                         TextBox1.ScrollToEnd();
@@ -191,10 +191,10 @@ namespace VoiceRecog
                 }
             }
 
-            if (copilotactive && !string.IsNullOrEmpty(command.Event))
+            if (_copilotactive && !string.IsNullOrEmpty(command.Event))
             {
                 TextBox1.AppendText(command.Phrase + "\r\n");
-                mysimconnect.SendEvent(command.Event, 1);
+                _simconnect.SendEvent(command.Event, 1);
 
                 TextBox1.AppendText(command.Event + " sent to sim!\r\n");
                 TextBox1.ScrollToEnd();
@@ -205,7 +205,7 @@ namespace VoiceRecog
         private void Quit_Click(object sender, RoutedEventArgs e)
         {
 
-            mysimconnect.Disconnect();
+            _simconnect.Disconnect();
             Environment.Exit(0);
             System.Windows.Application.Current.Shutdown();
         }
@@ -223,9 +223,14 @@ namespace VoiceRecog
                 using var reader = new StreamReader(filepath);
 
                 var config = deserializer.Deserialize<VoiceCommandConfig>(reader);
-                voiceCommands = config.Commands;
+                _voiceCommands.Clear();
 
-                TextBox1.AppendText($"Loaded {voiceCommands.Count} voice commands.\r\n");
+                if (config?.Commands != null)
+                {
+                    _voiceCommands.AddRange(config.Commands);
+                }
+
+                TextBox1.AppendText($"Loaded {_voiceCommands.Count} voice commands.\r\n");
             }
             catch (Exception e)
             {
