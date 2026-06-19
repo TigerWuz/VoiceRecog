@@ -12,7 +12,7 @@
         Width="750"
         MinHeight="400"
         MinWidth="600"
-        Icon="/ChatGPT Image 6 sep 2025, 20_01_58.png"
+        Icon="/MainIcon.ico"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Light"
