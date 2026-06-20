@@ -39,11 +39,13 @@ public class SpeechRecognitionService
 
     public void Start()
     {
+        Logger.Log("Speech recognition started.");
         _recognizer.RecognizeAsync(RecognizeMode.Multiple);
     }
 
     public void Stop()
     {
+        Logger.Log("Speech recognition stopped.");
         _recognizer.RecognizeAsyncStop();
     }
 }

@@ -27,6 +27,7 @@ namespace VoiceRecog
         public MainWindow()
         {
             InitializeComponent();
+            Logger.MessageLogged += Log;
 
             LoadVoiceCommands();
             InitializeSpeechRecognition();
@@ -39,8 +40,6 @@ namespace VoiceRecog
                 _voiceCommands.Clear();
                 _voiceCommands.AddRange(
                     VoiceCommandLoader.Load("voice_commands.yml"));
-
-                Log($"Loaded {_voiceCommands.Count} voice commands.");
             }
             catch (Exception ex)
             {
@@ -74,13 +73,16 @@ namespace VoiceRecog
             connectSimConnect.IsBackground = true;
             connectSimConnect.Start();
 
-            Debug.WriteLine("Window Loaded");
+            Logger.Log("Window Loaded");
+        }
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Logger.MessageLogged -= Log;
         }
 
         public void ConnectSimConnect()
         {
             _simConnect = new SimConnectImplementer();
-            _simConnect.LogResult += OnAddResult;
 
             //Debug.WriteLine($"Simconnect started");
             bool localbSimConnected = false;
@@ -101,7 +103,7 @@ namespace VoiceRecog
                         _simConnect.Connect();
                         Thread.Sleep(1000);
                         localbSimConnected = _simConnect.bSimConnected;
-                        Debug.WriteLine($"Simconnect status loop: {localbSimConnected}");
+                        Logger.Log( $"Simconnect status loop: {localbSimConnected}");
                         if (localbSimConnected)
                         {
                             SimconnectStatus.Fill = Brushes.Green;
@@ -109,7 +111,7 @@ namespace VoiceRecog
                         else
                         {
                             SimconnectStatus.Fill = Brushes.Red;
-                            TextBox1.Text += "Looking for simulator...\r\n";
+                            Logger.Log("Looking for simulator...");
                             Thread.Sleep(200);
                         }
                     });
@@ -123,7 +125,7 @@ namespace VoiceRecog
                     if (!_subscribedToSimData)
                     {
                         _subscribedToSimData = true;
-                        Debug.WriteLine($"SimConnect Data registred.");
+                        Logger.Log("SimConnect Data registred.");
 
                     }
 
@@ -138,7 +140,7 @@ namespace VoiceRecog
             {
                 if (!sResult.Contains("|"))
                 {
-                    Log(sResult);
+                    Logger.Log(sResult);
                 }
 
             });
@@ -167,12 +169,12 @@ namespace VoiceRecog
                     case "EnableRecognition":
                         _copilotActive = true;
                         RecogStatus.Fill = Brushes.Green;
-                        Log("Your co-pilot is active!");
+                        Logger.Log("Your co-pilot is active!");
                         return;
                     case "DisableRecognition":
                         _copilotActive = false;
                         RecogStatus.Fill = Brushes.Red;
-                        Log("Your co-pilot has a break!");
+                        Logger.Log("Your co-pilot has a break!");
                         return;
                 }
             }
@@ -180,7 +182,7 @@ namespace VoiceRecog
             if (_copilotActive && !string.IsNullOrEmpty(command.Event))
             {
                 _simConnect.SendEvent(command.Event, 1);
-                Log(command.Phrase + " sent: " + command.Event);
+                Logger.Log(command.Phrase + " sent: " + command.Event);
             }
         }
        
@@ -195,9 +197,11 @@ namespace VoiceRecog
 
         private void Log(string message)
         {
-            TextBox1.AppendText(message + Environment.NewLine);
-            TextBox1.ScrollToEnd();
-            Debug.WriteLine(message);
+            Dispatcher.Invoke(() =>
+            {
+                TextBox1.AppendText(message + Environment.NewLine);
+                TextBox1.ScrollToEnd();
+            });
         }
     }
 }
