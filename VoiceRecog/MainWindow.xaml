@@ -7,6 +7,7 @@
         xmlns:local="clr-namespace:VoiceRecog"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
+        Closing="Window_Closing"
         Title="VoiceRecognition for MSFS"
         Height="550"
         Width="750"

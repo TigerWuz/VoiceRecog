@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Interop;
 using System.Threading;
 using System.Diagnostics;
+using VoiceRecog.Services;
 
 namespace VoiceRecog
 {
@@ -34,7 +35,6 @@ namespace VoiceRecog
     {
         SimConnect simconnect = null;
         public Boolean bSimConnected = false; //if connected is true
-        public event EventHandler<string> LogResult = null;
         int counterIDevents = 0;
         int counterIDreqs = 0;
         int counterIDevents_max = 0;
@@ -140,7 +140,7 @@ namespace VoiceRecog
             }
             catch (Exception ex)
             {
-                LogResult?.Invoke(this, $"ReceiveSimConnectMessage Error: {ex.Message}");
+                Logger.Log($"ReceiveSimConnectMessage Error: {ex.Message}");
                 Disconnect();
             }
         }
@@ -163,7 +163,7 @@ namespace VoiceRecog
 
             if (bSimConnected)
             {
-                LogResult?.Invoke(this, "Already connected");
+                Logger.Log("Already connected");
                 return;
             }
 
@@ -187,13 +187,13 @@ namespace VoiceRecog
 
 
 
-                LogResult?.Invoke(this, "Connected");
+                Logger.Log("Connected");
             }
             catch (COMException ex)
             {
                 simconnect = null;
                 bSimConnected = false;
-                LogResult?.Invoke(this, $"Connection error is your simulator running?");
+                Logger.Log($"Connection error is your simulator running?");
                 return;
             }
         }
@@ -205,7 +205,7 @@ namespace VoiceRecog
         {
             if (!bSimConnected)
             {
-                LogResult?.Invoke(this, "Already disconnected");
+                Logger.Log("Already disconnected");
                 return;
             }
 
@@ -213,7 +213,7 @@ namespace VoiceRecog
             simconnect?.Dispose(); // May have already been disposed or not even been created, e.g. Disconnect called before Connect
             simconnect = null;
             bSimConnected = false;
-            LogResult?.Invoke(this, "Disconnected");
+            Logger.Log("Disconnected");
         }
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace VoiceRecog
         private void SimConnect_OnRecvOpen(SimConnect sender, SIMCONNECT_RECV_OPEN data)
         {
             bSimConnected = true;
-            LogResult?.Invoke(this, $"VoiceRecognition succesfully connected to MSFS using SimConnect");
+            Logger.Log($"VoiceRecognition succesfully connected to MSFS using SimConnect");
 
 
 
@@ -260,7 +260,7 @@ namespace VoiceRecog
         {
             if ((EVENTS)data.uEventID == EVENTS.KEY_C_UP)
             {
-                Debug.WriteLine("C is ingedrukt in de simulator! 🎉");
+                Logger.Log("C is ingedrukt in de simulator! 🎉");
                 // Hier kun je je eigen actie uitvoeren, bv. gear up, logging, externe hardware aansturen etc.
             }
         }
@@ -274,8 +274,7 @@ namespace VoiceRecog
         {
             foreach (var property in data.GetType().GetFields())
             {
-                LogResult?.Invoke(this, $"Exception (on exception): {property.Name} {property.GetValue(data)}");
-                Debug.WriteLine($"Exception (on exception): {property.Name} {property.GetValue(data)}");
+                Logger.Log($"Exception (on exception): {property.Name} {property.GetValue(data)}");
             }
 
         }
@@ -312,8 +311,7 @@ namespace VoiceRecog
                 }
                 catch (Exception ex)
                 {
-                    LogResult?.Invoke(this, $"SetSimVar Error: {ex.Message}");
-                    Debug.WriteLine($"SetSimVar Error: {ex.Message}");
+                    Logger.Log($"SetSimVar Error: {ex.Message}");
                 }
             }
             
@@ -347,7 +345,7 @@ namespace VoiceRecog
                         }
                         catch (Exception ex)
                         {
-                            LogResult?.Invoke(this, $"RegisterSimVar Error: {ex.Message}");
+                            Logger.Log($"RegisterSimVar Error: {ex.Message}");
                             SimConnect_OnRecvException(simconnect, new SIMCONNECT_RECV_EXCEPTION { dwException = (uint)ex.HResult });
                             return -1;
                         }
@@ -365,13 +363,13 @@ namespace VoiceRecog
 
                             // request when the SimConnect client is to receive data values for a specific object
                             simconnect.RequestDataOnSimObject((SIMVARREQ)counterIDreqs, (SIMVARDEF)counterIDreqs, 0, SIMCONNECT_PERIOD.SECOND, SIMCONNECT_DATA_REQUEST_FLAG.CHANGED, 0, 0, 0);
-                            LogResult?.Invoke(this, "String registered!");
+                            Logger.Log("String registered!");
 
                             simvarlist.Add(new SimVarList(simvar, counterIDreqs, var_type));
                         }
                         catch (Exception ex)
                         {
-                            LogResult?.Invoke(this, $"RegisterSimVar Error: {ex.Message}");
+                            Logger.Log($"RegisterSimVar Error: {ex.Message}");
                             SimConnect_OnRecvException(simconnect, new SIMCONNECT_RECV_EXCEPTION { dwException = (uint)ex.HResult });
                             return -1;
                         }
@@ -380,7 +378,7 @@ namespace VoiceRecog
                 }
                 else
                 {
-                    LogResult?.Invoke(this, $"Simvar {simvar} is already requested");
+                    Logger.Log($"Simvar {simvar} is already requested");
                 }
             }
             return -1;
@@ -398,12 +396,12 @@ namespace VoiceRecog
             if (type == "float")
             {
                 StructSimVar result = (StructSimVar)data.dwData[0];
-                LogResult?.Invoke(this, $"{var} |{result.var:F3}| ReqID: {reqid}");
+                Logger.Log($"{var} |{result.var:F3}| ReqID: {reqid}");
             }
             if (type == "string")
             {
                 StructSimVarString result = (StructSimVarString)data.dwData[0];
-                LogResult?.Invoke(this, $"{var} |{result.var_string}| ReqID: {reqid}");
+                Logger.Log($"{var} |{result.var_string}| ReqID: {reqid}");
             }
         }
 
@@ -431,11 +429,11 @@ namespace VoiceRecog
             try
             {
                 simconnect.SetDataOnSimObject((SIMVARREQ)req_id, 0, SIMCONNECT_DATA_SET_FLAG.DEFAULT, s1);
-                LogResult?.Invoke(this, $"Set! {req_id} {value}");
+                Logger.Log($"Set! {req_id} {value}");
             }
             catch (Exception ex)
             {
-                LogResult?.Invoke(this, $"SetSimVar Error: {ex.Message} {counterIDreqs} {value}");
+                Logger.Log($"SetSimVar Error: {ex.Message} {counterIDreqs} {value}");
             }
         }
 

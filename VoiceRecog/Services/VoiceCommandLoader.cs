@@ -17,6 +17,8 @@ public static class VoiceCommandLoader
 
         var config = deserializer.Deserialize<VoiceCommandConfig>(reader);
 
+        Logger.Log($"Loaded {config.Commands.Count} commands.");
+
         return config?.Commands ?? new List<VoiceCommand>();
     }
 }
