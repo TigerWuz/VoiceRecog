@@ -8,24 +8,21 @@ using VoiceRecog.Services;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using System.Windows.Interop;
+using System.Runtime.CompilerServices;
+using System.Windows.Threading;
 
 namespace VoiceRecog
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private SpeechRecognitionService _speechRecognition;
-        private SimConnectService _simConnectService;
-        //private SimConnectImplementer _simConnect;
-        
+        private SimConnectService? _simConnectService;
+        private DispatcherTimer? _connectTimer;
+        private IntPtr _wndHandle;
+
         private readonly List<VoiceCommand> _voiceCommands = new();
         private bool _copilotActive = true;
-
-        private bool _subscribedToSimData = false;
-
-        private IntPtr _wndHandle;
+       
 
         public MainWindow()
         {
@@ -73,10 +70,13 @@ namespace VoiceRecog
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _wndHandle = new WindowInteropHelper(this).Handle;
-            //Thread connectSimConnect = new Thread(ConnectSimConnect);
-            //connectSimConnect.IsBackground = true;
-            //connectSimConnect.Start();
-            ConnectSimConnect();
+
+            HwndSource source = HwndSource.FromHwnd(_wndHandle);
+            source.AddHook(WndProc);
+
+            _simConnectService = new SimConnectService(_wndHandle);
+
+            StartConnectTimer();
             Logger.Log("Window Loaded");
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -84,56 +84,30 @@ namespace VoiceRecog
             Logger.MessageLogged -= Log;
         }
 
-        public void ConnectSimConnect()
+        //This function tries to let the SimConnectService connect to the Sim
+        //then it is stopped
+        private void StartConnectTimer()
         {
-            _simConnectService = new SimConnectService(_wndHandle);
+            _connectTimer = new DispatcherTimer();
+            _connectTimer.Interval = TimeSpan.FromSeconds(2);
+            _connectTimer.Tick += ConnectTimer_Tick;
+            _connectTimer.Start();
+        }
 
-            //Debug.WriteLine($"Simconnect started");
-            bool localbSimConnected = false;
+        private void ConnectTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_simConnectService == null)
+                return;
 
-            while (true)
+            if (_simConnectService.IsConnected)
             {
-                //Debug.Write($"Start loop");
-                //Thread.Sleep(1000);
-                localbSimConnected = _simConnectService._simConnected;
-                if (!localbSimConnected)
-                {
-                    //Thread.Sleep(100);
-                    //this.Dispatcher.Invoke(() =>
-                    //{
-                        //Debug.WriteLine($"Just before simconnect call");
-                        _simConnectService.Connect();
-                        //Thread.Sleep(1000);
-                        localbSimConnected = _simConnectService._simConnected;
-                        Logger.Log( $"Simconnect status loop: {localbSimConnected}");
-                        if (localbSimConnected)
-                        {
-                            SimconnectStatus.Fill = Brushes.Green;
-                            break;
-                        }
-                        else
-                        {
-                            SimconnectStatus.Fill = Brushes.Red;
-                            Logger.Log("Looking for simulator...");
-                            //Thread.Sleep(200);
-                        }
-                    //});
-                }
-                //else
-                //{
-                //    this.Dispatcher.Invoke(() =>
-                //    {
-                //        SimconnectStatus.Fill = Brushes.Green;
-                //    });
-                //    if (!_subscribedToSimData)
-                //    {
-                //        Logger.Log("SimConnect Data registred.");
-                //    }
-
-                //}
+                _connectTimer?.Stop();
+                return;
             }
-            HwndSource source = HwndSource.FromHwnd(_wndHandle);
-            source.AddHook(WndProc);
+                
+
+            Logger.Log($"Trying to connect...");
+            _simConnectService.Connect();
         }
 
         private IntPtr WndProc(
@@ -143,10 +117,9 @@ namespace VoiceRecog
             IntPtr lParam,
             ref bool handled)
         {
-            const int WM_USER_SIMCONNECT = 0x0404;
-            if (msg == WM_USER_SIMCONNECT)
+            if (msg == SimConnectService.WM_USER_SIMCONNECT)
             {
-                _simConnectService.ReceiveMessage();
+                _simConnectService?.ReceiveMessage();
                 handled = true;
             }
             return IntPtr.Zero;

@@ -8,7 +8,7 @@ namespace VoiceRecog.Services
 {
     public class SimConnectService
     {
-        private const uint      _WM_USER_SIMCONNECT = 0x0404;
+        public const int      WM_USER_SIMCONNECT = 0x0404;
         private const string    _MSFS_PROCESS_NAME = "FlightSimulator";
         private const string    _PLUGIN_NAME = "Voice Recognition";
 
@@ -17,7 +17,7 @@ namespace VoiceRecog.Services
         private SimConnect _simConnect;
         private SimVars _simVars;
 
-        public bool _simConnected = false;
+        public bool IsConnected { get; private set; }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
         private struct SimVars
@@ -51,11 +51,14 @@ namespace VoiceRecog.Services
         //connect to sim
         public void Connect() 
         {
+            if (IsConnected)
+                return;
+
             try
             {
                 _simConnect = new SimConnect("Voice Recognition",
                                        _wndHandle,
-                                       _WM_USER_SIMCONNECT,
+                                       WM_USER_SIMCONNECT,
                                        null,
                                        0);
                 _simConnect.OnRecvOpen += new SimConnect.RecvOpenEventHandler(OnConnect);
@@ -63,11 +66,11 @@ namespace VoiceRecog.Services
                 _simConnect.OnRecvException += new SimConnect.RecvExceptionEventHandler(OnReceiveException);
                 _simConnect.OnRecvSimobjectData += new SimConnect.RecvSimobjectDataEventHandler(OnReceiveSimData);
 
-                _simConnected = true;
+                IsConnected = true;
             }
-            catch (Exception ex)
+            catch 
             {
-                Logger.Log($"{ex.Message}");
+                IsConnected = false;
             }
         }
 
@@ -94,7 +97,7 @@ namespace VoiceRecog.Services
         //disconnect to sim
         private void OnDisconnect(SimConnect sender, SIMCONNECT_RECV data)
         {
-            _simConnected = false;
+            IsConnected = false;
         }
 
         //do something when data is received
