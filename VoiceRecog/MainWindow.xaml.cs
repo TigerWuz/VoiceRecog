@@ -106,6 +106,7 @@ namespace VoiceRecog
 
             if (_simConnectService.IsConnected)
             {
+                SimconnectStatus.Fill = Brushes.Green;
                 _connectTimer?.Stop();
                 return;
             }
