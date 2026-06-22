@@ -7,22 +7,23 @@ using System.Windows.Media;
 using VoiceRecog.Services;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using System.Windows.Interop;
+using System.Runtime.CompilerServices;
+using System.Windows.Threading;
 
 namespace VoiceRecog
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private SpeechRecognitionService _speechRecognition;
-        private SimConnectImplementer _simConnect;
+        private SimConnectService? _simConnectService;
+        private DispatcherTimer? _connectTimer;
+        private IntPtr _wndHandle;
 
         private readonly List<VoiceCommand> _voiceCommands = new();
+
         private bool _copilotActive = true;
-
-        private bool _subscribedToSimData = false;
-
+       
 
         public MainWindow()
         {
@@ -43,8 +44,7 @@ namespace VoiceRecog
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Could not load voice commands.\n\n{ex.Message}");
+                MessageBox.Show($"Could not load voice commands.\n\n{ex.Message}");
             }
         }
 
@@ -69,10 +69,19 @@ namespace VoiceRecog
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Thread connectSimConnect = new Thread(ConnectSimConnect);
-            connectSimConnect.IsBackground = true;
-            connectSimConnect.Start();
+            _wndHandle = new WindowInteropHelper(this).Handle;
 
+            HwndSource source = HwndSource.FromHwnd(_wndHandle);
+            source.AddHook(WndProc);
+
+            var simEvents = _voiceCommands
+                .Where(c => !string.IsNullOrWhiteSpace(c.Event))
+                .Select(c => c.Event)
+                .Distinct()
+                .ToList();
+            _simConnectService = new SimConnectService(_wndHandle, simEvents);
+
+            StartConnectTimer();
             Logger.Log("Window Loaded");
         }
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -80,59 +89,46 @@ namespace VoiceRecog
             Logger.MessageLogged -= Log;
         }
 
-        public void ConnectSimConnect()
+        //This function tries to let the SimConnectService connect to the Sim
+        //then it is stopped
+        private void StartConnectTimer()
         {
-            _simConnect = new SimConnectImplementer();
-
-            //Debug.WriteLine($"Simconnect started");
-            bool localbSimConnected = false;
-
-            while (true)
-            {
-                //Debug.Write($"Start loop");
-                Thread.Sleep(1000);
-                localbSimConnected = _simConnect.bSimConnected;
-                if (!localbSimConnected)
-                {
-                    _subscribedToSimData = false;
-                    //Debug.WriteLine($"Start inner if ");
-                    Thread.Sleep(100);
-                    this.Dispatcher.Invoke(() =>
-                    {
-                        //Debug.WriteLine($"Just before simconnect call");
-                        _simConnect.Connect();
-                        Thread.Sleep(1000);
-                        localbSimConnected = _simConnect.bSimConnected;
-                        Logger.Log( $"Simconnect status loop: {localbSimConnected}");
-                        if (localbSimConnected)
-                        {
-                            SimconnectStatus.Fill = Brushes.Green;
-                        }
-                        else
-                        {
-                            SimconnectStatus.Fill = Brushes.Red;
-                            Logger.Log("Looking for simulator...");
-                            Thread.Sleep(200);
-                        }
-                    });
-                }
-                else
-                {
-                    this.Dispatcher.Invoke(() =>
-                    {
-                        SimconnectStatus.Fill = Brushes.Green;
-                    });
-                    if (!_subscribedToSimData)
-                    {
-                        _subscribedToSimData = true;
-                        Logger.Log("SimConnect Data registred.");
-
-                    }
-
-                }
-            }
+            _connectTimer = new DispatcherTimer();
+            _connectTimer.Interval = TimeSpan.FromSeconds(2);
+            _connectTimer.Tick += ConnectTimer_Tick;
+            _connectTimer.Start();
         }
 
+        private void ConnectTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_simConnectService == null)
+                return;
+
+            if (_simConnectService.IsConnected)
+            {
+                SimconnectStatus.Fill = Brushes.Green;
+                _connectTimer?.Stop();
+                return;
+            }
+                
+            Logger.Log($"Trying to connect...");
+            _simConnectService.Connect();
+        }
+
+        private IntPtr WndProc(
+            IntPtr hwnd,
+            int msg,
+            IntPtr wParam,
+            IntPtr lParam,
+            ref bool handled)
+        {
+            if (msg == SimConnectService.WM_USER_SIMCONNECT)
+            {
+                _simConnectService?.ReceiveMessage();
+                handled = true;
+            }
+            return IntPtr.Zero;
+        }
 
         private void OnAddResult(object sender, string sResult)
         {
@@ -181,7 +177,7 @@ namespace VoiceRecog
 
             if (_copilotActive && !string.IsNullOrEmpty(command.Event))
             {
-                _simConnect.SendEvent(command.Event, 1);
+                _simConnectService.SendEvent(command.Event);
                 Logger.Log(command.Phrase + " sent: " + command.Event);
             }
         }
@@ -190,7 +186,7 @@ namespace VoiceRecog
         private void Quit_Click(object sender, RoutedEventArgs e)
         {
 
-            _simConnect.Disconnect();
+            //_simConnectService.Disconnect();
             Environment.Exit(0);
             System.Windows.Application.Current.Shutdown();
         }
