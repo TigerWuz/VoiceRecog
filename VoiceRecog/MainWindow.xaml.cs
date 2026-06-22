@@ -21,6 +21,7 @@ namespace VoiceRecog
         private IntPtr _wndHandle;
 
         private readonly List<VoiceCommand> _voiceCommands = new();
+
         private bool _copilotActive = true;
        
 
@@ -43,8 +44,7 @@ namespace VoiceRecog
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Could not load voice commands.\n\n{ex.Message}");
+                MessageBox.Show($"Could not load voice commands.\n\n{ex.Message}");
             }
         }
 
@@ -74,7 +74,12 @@ namespace VoiceRecog
             HwndSource source = HwndSource.FromHwnd(_wndHandle);
             source.AddHook(WndProc);
 
-            _simConnectService = new SimConnectService(_wndHandle);
+            var simEvents = _voiceCommands
+                .Where(c => !string.IsNullOrWhiteSpace(c.Event))
+                .Select(c => c.Event)
+                .Distinct()
+                .ToList();
+            _simConnectService = new SimConnectService(_wndHandle, simEvents);
 
             StartConnectTimer();
             Logger.Log("Window Loaded");
@@ -105,7 +110,6 @@ namespace VoiceRecog
                 return;
             }
                 
-
             Logger.Log($"Trying to connect...");
             _simConnectService.Connect();
         }
@@ -172,7 +176,7 @@ namespace VoiceRecog
 
             if (_copilotActive && !string.IsNullOrEmpty(command.Event))
             {
-                //_simConnect.SendEvent(command.Event, 1);
+                _simConnectService.SendEvent(command.Event);
                 Logger.Log(command.Phrase + " sent: " + command.Event);
             }
         }
