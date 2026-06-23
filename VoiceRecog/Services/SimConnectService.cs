@@ -9,6 +9,7 @@ namespace VoiceRecog.Services
         private const string    _PLUGIN_NAME = "Voice Recognition";
 
         private IntPtr _wndHandle = new IntPtr(0);
+        public event Action<bool>? ConnectionStateChanged;
 
         private SimConnect _simConnect;
         private readonly List<string> _simEvents;
@@ -28,9 +29,17 @@ namespace VoiceRecog.Services
 
         public void ReceiveMessage() 
         {
+            if (!IsConnected || _simConnect == null)
+                return;
+
             try
             {
                 _simConnect.ReceiveMessage();
+            }
+            catch (COMException)
+            {
+                Logger.Log($"Lost connection to Sim.");
+                Disconnect();
             }
             catch (Exception ex)
             {
@@ -61,11 +70,11 @@ namespace VoiceRecog.Services
                 _simConnect.OnRecvQuit += new SimConnect.RecvQuitEventHandler(OnDisconnect);
                 _simConnect.OnRecvException += new SimConnect.RecvExceptionEventHandler(OnReceiveException);
 
-                IsConnected = true;
+                SetConnectionState(true);
             }
             catch 
             {
-                IsConnected = false;
+                SetConnectionState(false);
             }
         }
 
@@ -74,6 +83,15 @@ namespace VoiceRecog.Services
         {
             RegisterEvents();
             Logger.Log($"Connected to Flight Sim.");
+        }
+
+        private void SetConnectionState(bool connected)
+        {
+            if (IsConnected == connected)
+                return;
+
+            IsConnected = connected;
+            ConnectionStateChanged?.Invoke(connected);
         }
 
         private void RegisterEvents()
@@ -108,9 +126,26 @@ namespace VoiceRecog.Services
         }
 
         //disconnect to sim
+        public void Disconnect()
+        {
+            if (_simConnect == null)
+                return;
+
+            try
+            {
+                _simConnect.Dispose();
+            }
+            catch { }
+
+            _registeredEvents.Clear();
+            _simConnect = null;
+            SetConnectionState(false);
+
+            Logger.Log($"Disconnected from Sim.");
+        }
         private void OnDisconnect(SimConnect sender, SIMCONNECT_RECV data)
         {
-            IsConnected = false;
+            Disconnect();
         }
         private void OnReceiveException(SimConnect sender, SIMCONNECT_RECV_EXCEPTION ex)
         {
