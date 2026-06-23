@@ -80,7 +80,7 @@ namespace VoiceRecog
                 .Distinct()
                 .ToList();
             _simConnectService = new SimConnectService(_wndHandle, simEvents);
-
+            _simConnectService.ConnectionStateChanged += ConnectionStateChanged;
             StartConnectTimer();
             Logger.Log("Window Loaded");
         }
@@ -106,13 +106,25 @@ namespace VoiceRecog
 
             if (_simConnectService.IsConnected)
             {
-                SimconnectStatus.Fill = Brushes.Green;
                 _connectTimer?.Stop();
                 return;
             }
                 
             Logger.Log($"Trying to connect...");
             _simConnectService.Connect();
+        }
+
+        private void ConnectionStateChanged(bool connected)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                SimconnectStatus.Fill = connected
+                    ? Brushes.Green
+                    : Brushes.Red;
+
+                if (!connected)
+                    _connectTimer?.Start();
+            });
         }
 
         private IntPtr WndProc(
@@ -128,18 +140,6 @@ namespace VoiceRecog
                 handled = true;
             }
             return IntPtr.Zero;
-        }
-
-        private void OnAddResult(object sender, string sResult)
-        {
-            this.Dispatcher.Invoke(() =>
-            {
-                if (!sResult.Contains("|"))
-                {
-                    Logger.Log(sResult);
-                }
-
-            });
         }
 
         private void Settings(object sender, RoutedEventArgs e)
@@ -165,20 +165,20 @@ namespace VoiceRecog
                     case "EnableRecognition":
                         _copilotActive = true;
                         RecogStatus.Fill = Brushes.Green;
-                        Logger.Log("Your co-pilot is active!");
+                        Logger.Log($"Your co-pilot is active! | Confidence: {e.Result.Confidence:P1}");
                         return;
                     case "DisableRecognition":
                         _copilotActive = false;
                         RecogStatus.Fill = Brushes.Red;
-                        Logger.Log("Your co-pilot has a break!");
+                        Logger.Log($"Your co-pilot has a break! | Confidence: {e.Result.Confidence:P1}");
                         return;
                 }
             }
 
             if (_copilotActive && !string.IsNullOrEmpty(command.Event))
             {
-                _simConnectService.SendEvent(command.Event);
-                Logger.Log(command.Phrase + " sent: " + command.Event);
+                _simConnectService?.SendEvent(command.Event);
+                Logger.Log($"{command.Phrase} sent: {command.Event} | Confidence: {e.Result.Confidence:P1}");
             }
         }
        
